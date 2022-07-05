@@ -1,0 +1,8 @@
+app:
+  run-address: 'localhost:8080'
+
+accrual:
+  accrual-address: '1234'
+
+db:
+  database-uri: '1234'
