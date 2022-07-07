@@ -2,14 +2,16 @@ package httpserver
 
 import (
 	"context"
+	"log"
 	"net/http"
+	"reflect"
 	"time"
 )
 
 const (
 	_defaultReadTimeout     = 5 * time.Second
 	_defaultWriteTimeout    = 5 * time.Second
-	_defaultAddr            = ":80"
+	_defaultAddr            = ":8080"
 	_defaultShutdownTimeout = 3 * time.Second
 )
 
@@ -36,6 +38,8 @@ func New(handler http.Handler, opts ...Option) *Server {
 	for _, opt := range opts {
 		opt(s)
 	}
+
+	log.Print(reflect.TypeOf(s), s.server)
 
 	s.start()
 

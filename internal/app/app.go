@@ -27,12 +27,17 @@ func Run(cfg *config.Config, logger *zap.Logger) {
 	}
 	defer pg.Close()
 
+	logger.Info("db connection established")
+
 	userUseCase := usecase.New(
 		repo.New(pg),
 	)
 
 	handler := chi.NewRouter()
 	controller.NewRouter(handler, logger, userUseCase, cfg)
+
+	logger.Info("usercase and router prepared")
+	logger.Info("looking forward to start http server")
 
 	httpServer := httpserver.New(handler, httpserver.Port(cfg.App.RunAddress))
 

@@ -16,5 +16,7 @@ func main() {
 		logger.Error(err.Error())
 	}
 
+	logger.Info("config loaded, prepared to start app")
+
 	app.Run(cfg, logger)
 }
