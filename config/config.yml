@@ -2,10 +2,10 @@ app:
   run-address: '8080'
 
 accrual:
-  accrual-address: '1234'
+  accrual-address: ''
 
 db:
-  database-uri: '1234'
+  database-uri: 'postgres://goshort:1dc3sfdf@localhost:5432/gmdb'
 
 auth:
   secret: '23i4-q028934h#$@'

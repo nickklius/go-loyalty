@@ -20,7 +20,7 @@ type (
 	}
 
 	Accrual struct {
-		AccrualAddress string `env-required:"true" yaml:"accrual-address" env:"ACCRUAL_SYSTEM_ADDRESS"`
+		AccrualAddress string `yaml:"accrual-address" env:"ACCRUAL_SYSTEM_ADDRESS"`
 	}
 
 	DB struct {
