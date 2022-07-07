@@ -12,6 +12,7 @@ type (
 		App     `yaml:"app"`
 		Accrual `yaml:"accrual"`
 		DB      `yaml:"db"`
+		Auth    `yaml:"auth"`
 	}
 
 	App struct {
@@ -24,6 +25,11 @@ type (
 
 	DB struct {
 		DatabaseURI string `env-required:"true" yaml:"database-uri" env:"DATABASE_URI"`
+	}
+
+	Auth struct {
+		Secret         string `env-required:"true" yaml:"secret"`
+		AccessLifeTime int64  `env-required:"true" yaml:"access-life-time"`
 	}
 )
 
