@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"go.uber.org/zap"
 
 	"github.com/nickklius/go-loyalty/config"
@@ -8,6 +10,8 @@ import (
 )
 
 func main() {
+	log.Print("shall we work?")
+
 	logger, _ := zap.NewProduction()
 	defer logger.Sync()
 
