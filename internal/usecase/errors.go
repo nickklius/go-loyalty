@@ -12,6 +12,9 @@ var (
 	ErrDBNotFound        = errors.New("not found")
 	ErrDBDuplicatedEntry = errors.New("duplicated entry")
 	ErrDBBuildQuery      = errors.New("query not valid")
+
+	ErrDBDuplicateOrder             = errors.New("order was already registered")
+	ErrDBDuplicateOrderByUserItself = errors.New("order was already registered by user itself")
 )
 
 func ParseError(err error) error {

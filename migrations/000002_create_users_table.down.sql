@@ -1,1 +1,1 @@
-DROP TABLE gophermart.users;
+DROP TABLE users;

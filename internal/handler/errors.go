@@ -1,4 +1,4 @@
-package controller
+package handler
 
 import (
 	"errors"
@@ -9,6 +9,14 @@ import (
 
 func parseError(err error) (int, string) {
 	if errors.Is(err, usecase.ErrDBDuplicatedEntry) {
+		return http.StatusConflict, err.Error()
+	}
+
+	if errors.Is(err, usecase.ErrDBDuplicateOrderByUserItself) {
+		return http.StatusOK, err.Error()
+	}
+
+	if errors.Is(err, usecase.ErrDBDuplicateOrder) {
 		return http.StatusConflict, err.Error()
 	}
 

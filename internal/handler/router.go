@@ -1,4 +1,4 @@
-package controller
+package handler
 
 import (
 	"go.uber.org/zap"
@@ -10,7 +10,7 @@ import (
 	"github.com/nickklius/go-loyalty/internal/usecase"
 )
 
-func NewRouter(h *chi.Mux, l *zap.Logger, u usecase.User, c *config.Config) {
+func NewRouter(h *chi.Mux, l *zap.Logger, u *usecase.UseCase, c *config.Config) {
 	h.Use(middleware.RequestID)
 	h.Use(middleware.RealIP)
 	h.Use(middleware.Logger)
@@ -18,6 +18,5 @@ func NewRouter(h *chi.Mux, l *zap.Logger, u usecase.User, c *config.Config) {
 
 	h.Use(mv.JWTMiddleware(c.Auth))
 
-	newUserRoutes(h, l, u, c)
-
+	newRoutes(h, l, u, c)
 }

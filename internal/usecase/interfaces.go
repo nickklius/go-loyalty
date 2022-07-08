@@ -12,8 +12,13 @@ type (
 		CheckPassword(ctx context.Context, user entity.User) (entity.User, error)
 	}
 
-	UserRepo interface {
-		Store(ctx context.Context, user entity.User) error
-		Check(ctx context.Context, user entity.User) (entity.User, error)
+	Order interface {
+		CreateOrder(ctx context.Context, order entity.Order) error
+	}
+
+	Repository interface {
+		StoreUser(ctx context.Context, user entity.User) error
+		CheckUser(ctx context.Context, user entity.User) (entity.User, error)
+		StoreOrder(ctx context.Context, order entity.Order) error
 	}
 )

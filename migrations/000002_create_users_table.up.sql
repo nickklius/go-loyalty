@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS gophermart.users (
+CREATE TABLE IF NOT EXISTS users (
                                                 id uuid DEFAULT uuid_generate_v4 () PRIMARY KEY,
                                                 login VARCHAR(50) NOT NULL UNIQUE,
                                                 password text NOT NULL,

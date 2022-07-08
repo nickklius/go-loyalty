@@ -2,9 +2,7 @@ package httpserver
 
 import (
 	"context"
-	"log"
 	"net/http"
-	"reflect"
 	"time"
 )
 
@@ -38,8 +36,6 @@ func New(handler http.Handler, opts ...Option) *Server {
 	for _, opt := range opts {
 		opt(s)
 	}
-
-	log.Print(reflect.TypeOf(s), s.server)
 
 	s.start()
 
