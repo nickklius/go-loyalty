@@ -13,7 +13,7 @@ type App struct {
 }
 
 func Run(cfg *config.Config, logger *zap.Logger) {
-	Migrate(cfg.DB.DatabaseURI)
+	//Migrate(cfg.DB.DatabaseURI)
 
 	srv := &http.Server{Handler: nil, Addr: cfg.App.RunAddress}
 	srv.ListenAndServe()
