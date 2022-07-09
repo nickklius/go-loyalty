@@ -24,7 +24,10 @@ func main() {
 	log.Print("starting app, create handler")
 	handler := Handler{}
 	log.Print("run listener")
-	http.ListenAndServe(":9000", handler)
+	err := http.ListenAndServe(":8080", handler)
+	if err != nil {
+		return
+	}
 
 	//app.Run(cfg, logger)
 
