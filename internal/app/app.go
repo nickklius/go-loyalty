@@ -1,8 +1,6 @@
 package app
 
 import (
-	"net/http"
-
 	"go.uber.org/zap"
 
 	"github.com/nickklius/go-loyalty/config"
@@ -19,9 +17,9 @@ func Run(cfg *config.Config, logger *zap.Logger) {
 	//}
 	//defer pg.Close()
 
-	srv := &http.Server{Addr: cfg.App.RunAddress, Handler: nil}
-
-	srv.ListenAndServe()
+	//srv := &http.Server{Addr: cfg.App.RunAddress, Handler: nil}
+	//
+	//srv.ListenAndServe()
 
 	//useCases := usecase.New(
 	//	repo.New(pg),
