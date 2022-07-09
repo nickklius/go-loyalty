@@ -3,7 +3,6 @@ package app
 import (
 	"errors"
 	"log"
-	"os"
 	"time"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -12,17 +11,12 @@ import (
 )
 
 const (
-	_defaultAttempts = 2
+	_defaultAttempts = 15
 	_defaultTimeout  = time.Second
 )
 
-func init() {
-	databaseURL, ok := os.LookupEnv("DATABASE_URI")
-	if !ok || len(databaseURL) == 0 {
-		log.Fatalf("migrate: environment variable not declared: DATABASE_URI")
-	}
-
-	databaseURL += "?sslmode=disable"
+func Migrate(databaseURI string) {
+	databaseURI += "?sslmode=disable"
 
 	var (
 		attempts = _defaultAttempts
@@ -31,7 +25,7 @@ func init() {
 	)
 
 	for attempts > 0 {
-		m, err = migrate.New("file://migrations", databaseURL)
+		m, err = migrate.New("file://migrations", databaseURI)
 		if err == nil {
 			break
 		}
