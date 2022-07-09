@@ -2,6 +2,7 @@ package httpserver
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 )
@@ -44,6 +45,7 @@ func New(handler http.Handler, opts ...Option) *Server {
 
 func (s *Server) start() {
 	go func() {
+		fmt.Println(s.server.Addr)
 		s.notify <- s.server.ListenAndServe()
 		close(s.notify)
 	}()
