@@ -17,10 +17,10 @@ func main() {
 		logger.Error(err.Error())
 	}
 
-	//s := &http.Server{
-	//	//Handler: h,
-	//	Addr: ":8080",
-	//}
+	s := &http.Server{
+		Handler: nil,
+		Addr:    cfg.App.RunAddress,
+	}
 
 	//fmt.Println(s.Addr, cfg.App.RunAddress)
 	//err = s.ListenAndServe()
@@ -29,8 +29,7 @@ func main() {
 	//}
 
 	//http.ListenAndServe(cfg.App.RunAddress, nil)
-	srv := &http.Server{Handler: nil, Addr: cfg.App.RunAddress}
-	srv.ListenAndServe()
+	s.ListenAndServe()
 
 	//app.Run(cfg, logger)
 }
