@@ -1,10 +1,11 @@
 package main
 
 import (
+	"net/http"
+
 	"go.uber.org/zap"
 
 	"github.com/nickklius/go-loyalty/config"
-	"github.com/nickklius/go-loyalty/internal/app"
 )
 
 func main() {
@@ -16,5 +17,18 @@ func main() {
 		logger.Error(err.Error())
 	}
 
-	app.Run(cfg, logger)
+	//s := &http.Server{
+	//	//Handler: h,
+	//	Addr: ":8080",
+	//}
+
+	//fmt.Println(s.Addr, cfg.App.RunAddress)
+	//err = s.ListenAndServe()
+	//if err != nil {
+	//	logger.Error("app - Run - httpServer.Shutdown: " + err.Error())
+	//}
+
+	http.ListenAndServe(cfg.App.RunAddress, nil)
+
+	//app.Run(cfg, logger)
 }
