@@ -3,7 +3,6 @@ package app
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"go.uber.org/zap"
 
@@ -33,19 +32,13 @@ func Run(cfg *config.Config, logger *zap.Logger) {
 	h := chi.NewRouter()
 	handler.NewRouter(h, logger, useCases, cfg)
 
-	type Server struct {
-		server          *http.Server
-		notify          chan error
-		shutdownTimeout time.Duration
-	}
-
 	s := &http.Server{
 		Handler: h,
 		Addr:    "8080",
 	}
 
 	port := cfg.App.RunAddress
-	s.Addr = ":" + port
+	s.Addr = "localhost:" + port
 
 	fmt.Println(s.Addr)
 	err = s.ListenAndServe()
