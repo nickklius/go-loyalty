@@ -2,7 +2,6 @@ package app
 
 import (
 	"fmt"
-	"net"
 	"net/http"
 	"time"
 
@@ -46,7 +45,7 @@ func Run(cfg *config.Config, logger *zap.Logger) {
 	}
 
 	port := cfg.App.RunAddress
-	s.Addr = net.JoinHostPort("", port)
+	s.Addr = ":" + port
 
 	fmt.Println(s.Addr)
 	err = s.ListenAndServe()
