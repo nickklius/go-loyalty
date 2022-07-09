@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"net"
 	"net/http"
 	"time"
@@ -39,20 +40,16 @@ func Run(cfg *config.Config, logger *zap.Logger) {
 		shutdownTimeout time.Duration
 	}
 
-	httpServer := &http.Server{
+	s := &http.Server{
 		Handler: h,
 		Addr:    "8080",
 	}
 
-	s := &Server{
-		server: httpServer,
-		notify: make(chan error, 1),
-	}
-
 	port := cfg.App.RunAddress
-	s.server.Addr = net.JoinHostPort("", port)
+	s.Addr = net.JoinHostPort("", port)
 
-	err = s.server.ListenAndServe()
+	fmt.Println(s.Addr)
+	err = s.ListenAndServe()
 	if err != nil {
 		logger.Error("app - Run - httpServer.Shutdown: " + err.Error())
 	}
