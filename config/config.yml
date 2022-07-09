@@ -1,5 +1,5 @@
 app:
-  run-address: '8080'
+  run-address: ':8080'
 accrual:
   accrual-address: ''
 db:
