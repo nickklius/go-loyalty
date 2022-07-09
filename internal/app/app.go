@@ -1,8 +1,6 @@
 package app
 
 import (
-	"net/http"
-
 	"go.uber.org/zap"
 
 	"github.com/go-chi/chi/v5"
@@ -31,9 +29,6 @@ func Run(cfg *config.Config, logger *zap.Logger) {
 	h := chi.NewRouter()
 	handler.NewRouter(h, logger, useCases, cfg)
 
-	srv := &http.Server{Addr: cfg.App.RunAddress, Handler: nil}
-
-	srv.ListenAndServe()
 	//httpServer := httpserver.New(h, httpserver.Port(cfg.App.RunAddress))
 
 	//interrupt := make(chan os.Signal, 1)

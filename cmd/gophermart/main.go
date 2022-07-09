@@ -1,10 +1,11 @@
 package main
 
 import (
+	"net/http"
+
 	"go.uber.org/zap"
 
 	"github.com/nickklius/go-loyalty/config"
-	"github.com/nickklius/go-loyalty/internal/app"
 )
 
 func main() {
@@ -16,5 +17,8 @@ func main() {
 		logger.Error(err.Error())
 	}
 
-	app.Run(cfg, logger)
+	srv := &http.Server{Addr: cfg.App.RunAddress, Handler: nil}
+
+	srv.ListenAndServe()
+	//app.Run(cfg, logger)
 }
