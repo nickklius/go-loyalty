@@ -21,7 +21,7 @@ func main() {
 
 	s := &http.Server{
 		Handler: nil,
-		Addr:    "8080",
+		Addr:    cfg.RunAddress,
 	}
 
 	//fmt.Println(s.Addr, cfg.App.RunAddress)
