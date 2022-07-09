@@ -14,11 +14,13 @@ type (
 
 	Order interface {
 		CreateOrder(ctx context.Context, order entity.Order) error
+		GetOrdersByUserID(ctx context.Context, userID string) ([]entity.Order, error)
 	}
 
 	Repository interface {
 		StoreUser(ctx context.Context, user entity.User) error
 		CheckUser(ctx context.Context, user entity.User) (entity.User, error)
 		StoreOrder(ctx context.Context, order entity.Order) error
+		GetOrders(ctx context.Context, userID string) ([]entity.Order, error)
 	}
 )

@@ -27,7 +27,7 @@ func (r *Repository) StoreUser(ctx context.Context, u entity.User) error {
 		Values(u.Login, u.Password).
 		ToSql()
 	if err != nil {
-		return fmt.Errorf("Repo - StoreUser - r.Builder: %w", err)
+		return fmt.Errorf("repo - StoreUser - r.Builder: %w", err)
 	}
 
 	_, err = r.Pool.Exec(ctx, sql, args...)
@@ -47,7 +47,7 @@ func (r *Repository) CheckUser(ctx context.Context, user entity.User) (entity.Us
 		Where("login = ? AND password = ?", user.Login, user.Password).
 		ToSql()
 	if err != nil {
-		return user, fmt.Errorf("Repo - CheckUser - r.Builder: %w", err)
+		return user, fmt.Errorf("repo - CheckUser - r.Builder: %w", err)
 	}
 
 	row := r.Pool.QueryRow(ctx, sql, args...)
@@ -68,7 +68,7 @@ func (r *Repository) StoreOrder(ctx context.Context, order entity.Order) error {
 		ToSql()
 
 	if err != nil {
-		return fmt.Errorf("Repo - StoreOrder - r.Builder: %w", err)
+		return fmt.Errorf("repo - StoreOrder - r.Builder: %w", err)
 	}
 
 	_, err = r.Pool.Exec(ctx, sql, args...)
@@ -92,6 +92,41 @@ func (r *Repository) StoreOrder(ctx context.Context, order entity.Order) error {
 	return nil
 }
 
+func (r *Repository) GetOrders(ctx context.Context, userID string) ([]entity.Order, error) {
+	var orders []entity.Order
+
+	sql, args, err := r.Builder.
+		Select("number, status, accrual, uploaded_at").
+		From("orders").
+		Where("user_id = ?", userID).
+		ToSql()
+	if err != nil {
+		return orders, fmt.Errorf("repo - getOrders - r.Builder: %w", err)
+	}
+
+	rows, err := r.Pool.Query(ctx, sql, args...)
+	if err != nil {
+		return orders, err
+	}
+
+	for rows.Next() {
+		var order entity.Order
+
+		err = rows.Scan(&order.Number, &order.Status, &order.Accrual, &order.UploadedAt)
+		if err != nil {
+			return orders, err
+		}
+
+		orders = append(orders, order)
+	}
+
+	if err = rows.Err(); err != nil {
+		return orders, err
+	}
+
+	return orders, nil
+}
+
 func (r *Repository) getOrder(ctx context.Context, number string) (entity.Order, error) {
 	var order entity.Order
 
@@ -101,7 +136,7 @@ func (r *Repository) getOrder(ctx context.Context, number string) (entity.Order,
 		Where("number = ?", number).
 		ToSql()
 	if err != nil {
-		return order, fmt.Errorf("Repo - getOrder - r.Builder: %w", err)
+		return order, fmt.Errorf("repo - getOrder - r.Builder: %w", err)
 	}
 
 	row := r.Pool.QueryRow(ctx, sql, args...)

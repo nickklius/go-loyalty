@@ -28,6 +28,8 @@ func newRoutes(handler *chi.Mux, l *zap.Logger, u *usecase.UseCase, c *config.Co
 	handler.Post("/api/user/register", r.Register)
 	handler.Post("/api/user/login", r.Login)
 	handler.Post("/api/user/orders", r.CreateOrder)
+
+	handler.Get("/api/user/orders", r.GetOrders)
 }
 
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
@@ -152,4 +154,37 @@ func (h *Handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusAccepted)
+}
+
+func (h *Handler) GetOrders(w http.ResponseWriter, r *http.Request) {
+	r.Header.Add("Content-Type", "application/json")
+
+	userID := middleware.GetClaims(r.Context())
+
+	orders, err := h.u.GetOrdersByUserID(r.Context(), userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if len(orders) == 0 {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	body, err := json.Marshal(orders)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+	w.WriteHeader(http.StatusOK)
+
+	_, err = w.Write(body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }

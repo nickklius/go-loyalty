@@ -44,3 +44,14 @@ func (uc *UseCase) CreateOrder(ctx context.Context, order entity.Order) error {
 	}
 	return nil
 }
+
+func (uc *UseCase) GetOrdersByUserID(ctx context.Context, userID string) ([]entity.Order, error) {
+	var o []entity.Order
+
+	o, err := uc.repo.GetOrders(ctx, userID)
+	if err != nil {
+		return o, fmt.Errorf("UseCase - GetOrders - u.repo.GetOrders: %w", err)
+	}
+
+	return o, nil
+}

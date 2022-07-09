@@ -6,4 +6,4 @@ db:
   database-uri: ''
 auth:
   secret: '23i4-q028934h#$@'
-  access-life-time: 60
+  access-life-time: 600
