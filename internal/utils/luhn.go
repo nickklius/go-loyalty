@@ -1,10 +1,10 @@
 package utils
 
 func ValidLuhnNumber(number int) bool {
-	return (number%10+checksum(number/10))%10 == 0
+	return (number%10+luhnCheckSum(number/10))%10 == 0
 }
 
-func checksum(number int) int {
+func luhnCheckSum(number int) int {
 	var luhn int
 
 	for i := 0; number > 0; i++ {
