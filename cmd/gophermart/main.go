@@ -29,7 +29,7 @@ func main() {
 	//}
 
 	//http.ListenAndServe(cfg.App.RunAddress, nil)
-	srv := &http.Server{Addr: cfg.App.RunAddress, Handler: nil}
+	srv := &http.Server{Handler: nil, Addr: cfg.App.RunAddress}
 	srv.ListenAndServe()
 
 	//app.Run(cfg, logger)
