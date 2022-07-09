@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"net"
 	"net/http"
 
 	"go.uber.org/zap"
@@ -19,7 +21,7 @@ func main() {
 
 	s := &http.Server{
 		Handler: nil,
-		Addr:    cfg.App.RunAddress,
+		Addr:    "8080",
 	}
 
 	//fmt.Println(s.Addr, cfg.App.RunAddress)
@@ -28,8 +30,14 @@ func main() {
 	//	logger.Error("app - Run - httpServer.Shutdown: " + err.Error())
 	//}
 
+	fmt.Println(cfg.Secret)
+
 	//http.ListenAndServe(cfg.App.RunAddress, nil)
-	s.ListenAndServe()
+	s.Addr = net.JoinHostPort("", s.Addr)
+	err = s.ListenAndServe()
+	if err != nil {
+		return
+	}
 
 	//app.Run(cfg, logger)
 }
