@@ -2,7 +2,6 @@ package httpserver
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 )
@@ -10,7 +9,7 @@ import (
 const (
 	_defaultReadTimeout     = 5 * time.Second
 	_defaultWriteTimeout    = 5 * time.Second
-	_defaultAddr            = ":8080"
+	_defaultAddr            = ":9000"
 	_defaultShutdownTimeout = 3 * time.Second
 )
 
@@ -45,7 +44,6 @@ func New(handler http.Handler, opts ...Option) *Server {
 
 func (s *Server) start() {
 	go func() {
-		fmt.Println(s.server.Addr)
 		s.notify <- s.server.ListenAndServe()
 		close(s.notify)
 	}()
