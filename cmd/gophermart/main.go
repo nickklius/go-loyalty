@@ -28,7 +28,11 @@ func main() {
 	//	logger.Error("app - Run - httpServer.Shutdown: " + err.Error())
 	//}
 
-	http.ListenAndServe(cfg.App.RunAddress, nil)
+	//http.ListenAndServe(cfg.App.RunAddress, nil)
+	srv := &http.Server{Addr: cfg.App.RunAddress, Handler: nil}
+	srv.ListenAndServe()
 
 	//app.Run(cfg, logger)
 }
+
+//
