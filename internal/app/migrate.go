@@ -16,8 +16,6 @@ const (
 )
 
 func Migrate(databaseURI string) {
-	//databaseURI += "?sslmode=disable"
-
 	var (
 		attempts = _defaultAttempts
 		err      error
