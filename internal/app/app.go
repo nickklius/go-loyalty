@@ -6,7 +6,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/nickklius/go-loyalty/config"
-	"github.com/nickklius/go-loyalty/internal/storage/postgres"
 )
 
 type App struct {
@@ -14,11 +13,11 @@ type App struct {
 }
 
 func Run(cfg *config.Config, logger *zap.Logger) {
-	pg, err := postgres.New(cfg.DB.DatabaseURI)
-	if err != nil {
-		logger.Error(err.Error())
-	}
-	defer pg.Close()
+	//pg, err := postgres.New(cfg.DB.DatabaseURI)
+	//if err != nil {
+	//	logger.Error(err.Error())
+	//}
+	//defer pg.Close()
 
 	srv := &http.Server{Addr: cfg.App.RunAddress, Handler: nil}
 
