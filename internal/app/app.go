@@ -1,14 +1,12 @@
 package app
 
 import (
+	"net/http"
+
 	"go.uber.org/zap"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/nickklius/go-loyalty/config"
-	"github.com/nickklius/go-loyalty/internal/handler"
 	"github.com/nickklius/go-loyalty/internal/storage/postgres"
-	"github.com/nickklius/go-loyalty/internal/usecase"
-	"github.com/nickklius/go-loyalty/internal/usecase/repo"
 )
 
 type App struct {
@@ -22,12 +20,16 @@ func Run(cfg *config.Config, logger *zap.Logger) {
 	}
 	defer pg.Close()
 
-	useCases := usecase.New(
-		repo.New(pg),
-	)
+	srv := &http.Server{Addr: cfg.App.RunAddress, Handler: nil}
 
-	h := chi.NewRouter()
-	handler.NewRouter(h, logger, useCases, cfg)
+	srv.ListenAndServe()
+
+	//useCases := usecase.New(
+	//	repo.New(pg),
+	//)
+	//
+	//h := chi.NewRouter()
+	//handler.NewRouter(h, logger, useCases, cfg)
 
 	//httpServer := httpserver.New(h, httpserver.Port(cfg.App.RunAddress))
 
