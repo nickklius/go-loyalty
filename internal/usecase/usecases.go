@@ -55,3 +55,14 @@ func (uc *UseCase) GetOrdersByUserID(ctx context.Context, userID string) ([]enti
 
 	return o, nil
 }
+
+func (uc *UseCase) GetBalanceByUserID(ctx context.Context, userID string) (entity.UserBalance, error) {
+	var ub entity.UserBalance
+
+	ub, err := uc.repo.GetBalance(ctx, userID)
+	if err != nil {
+		return ub, fmt.Errorf("UseCase - GetBanalceByUserID - u.repo.GetBalance: %w", err)
+	}
+
+	return ub, nil
+}

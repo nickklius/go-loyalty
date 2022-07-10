@@ -30,6 +30,7 @@ func newRoutes(handler *chi.Mux, l *zap.Logger, u *usecase.UseCase, c *config.Co
 	handler.Post("/api/user/orders", r.CreateOrder)
 
 	handler.Get("/api/user/orders", r.GetOrders)
+	handler.Get("/api/user/balance", r.GetUserBalance)
 }
 
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
@@ -69,7 +70,6 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Authorization", "Bearer "+token.AccessToken)
-
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -107,7 +107,6 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Authorization", "Bearer "+token.AccessToken)
-
 	w.WriteHeader(http.StatusOK)
 }
 
@@ -172,17 +171,39 @@ func (h *Handler) GetOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body, err := json.Marshal(orders)
+	response, err := json.Marshal(orders)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-
 	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(response)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
 
-	_, err = w.Write(body)
+func (h *Handler) GetUserBalance(w http.ResponseWriter, r *http.Request) {
+	userID := middleware.GetClaims(r.Context())
+
+	balance, err := h.u.GetBalanceByUserID(r.Context(), userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	response, err := json.Marshal(balance)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(response)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

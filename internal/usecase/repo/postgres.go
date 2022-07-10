@@ -148,3 +148,25 @@ func (r *Repository) getOrder(ctx context.Context, number string) (entity.Order,
 
 	return order, nil
 }
+
+func (r *Repository) GetBalance(ctx context.Context, userID string) (entity.UserBalance, error) {
+	var ub entity.UserBalance
+
+	sql, args, err := r.Builder.
+		Select("balance, spent").
+		From("users").
+		Where("id = ?", userID).
+		ToSql()
+	if err != nil {
+		return ub, fmt.Errorf("repo - GetBalance - r.Builder: %w", err)
+	}
+
+	row := r.Pool.QueryRow(ctx, sql, args...)
+
+	err = row.Scan(&ub.Balance, &ub.Spent)
+	if err != nil {
+		return ub, err
+	}
+
+	return ub, nil
+}

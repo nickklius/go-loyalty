@@ -10,6 +10,7 @@ type (
 	User interface {
 		CreateUser(ctx context.Context, user entity.User) error
 		CheckPassword(ctx context.Context, user entity.User) (entity.User, error)
+		GetUserBalance(ctx context.Context, userId string) (entity.UserBalance, error)
 	}
 
 	Order interface {
@@ -22,5 +23,6 @@ type (
 		CheckUser(ctx context.Context, user entity.User) (entity.User, error)
 		StoreOrder(ctx context.Context, order entity.Order) error
 		GetOrders(ctx context.Context, userID string) ([]entity.Order, error)
+		GetBalance(ctx context.Context, userID string) (entity.UserBalance, error)
 	}
 )
