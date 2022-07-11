@@ -48,11 +48,11 @@ func (w *Worker) Run() {
 			select {
 			case job := <-w.stream:
 				w.logger.Info("job is come " + job.OrderID)
-				//err := w.makeRequest(job)
-				//if err != nil {
-				//	w.logger.Error("error when making request to the accrual " + err.Error())
-				//	continue
-				//}
+				err := w.makeRequest(job)
+				if err != nil {
+					w.logger.Error("error when making request to the accrual " + err.Error())
+					continue
+				}
 			case <-w.done:
 				break loop
 			}
@@ -153,16 +153,13 @@ func (w *Worker) makeRequest(job entity.Job) error {
 	}
 
 	if result.Status == "REGISTERED" || result.Status == "PROCESSING" {
-		w.logger.Info("order processing is not finished")
+		_ = w.updateOrderStatus(result)
 		return errors.New("order processing is not finished")
 	}
 
 	if result.Status == "INVALID" {
-		w.logger.Info("order will not be processed")
-		err = w.closeJob(job)
-		if err != nil {
-			return errors.New("error when removing invalid job from queue")
-		}
+		_ = w.updateOrderStatus(result)
+		_ = w.closeJob(job)
 		return errors.New("order processing is not finished")
 	}
 

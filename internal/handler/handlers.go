@@ -153,8 +153,8 @@ func (h *Handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//job := entity.Job{OrderID: strconv.Itoa(number)}
-	//err = h.u.AddJobToRepo(r.Context(), job)
+	job := entity.Job{OrderID: strconv.Itoa(number)}
+	err = h.u.AddJobToRepo(r.Context(), job)
 
 	w.WriteHeader(http.StatusAccepted)
 }
@@ -168,6 +168,8 @@ func (h *Handler) GetUserOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
 	if len(orders) == 0 {
 		w.WriteHeader(http.StatusNoContent)
 		return
@@ -179,7 +181,6 @@ func (h *Handler) GetUserOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write(response)
 	if err != nil {

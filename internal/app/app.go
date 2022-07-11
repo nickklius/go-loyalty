@@ -57,7 +57,7 @@ func Run(cfg *config.Config, logger *zap.Logger) {
 	select {
 	case s := <-interrupt:
 		logger.Info("app - Run - signal: " + s.String())
-		//w.Done()
+		w.Done()
 	case err = <-httpServer.Notify():
 		logger.Error("app - Run - httpServer.Notify: " + err.Error())
 	}
