@@ -139,12 +139,14 @@ func (w *Worker) makeRequest(job entity.Job) error {
 		w.logger.Info("Order not found on accrual service")
 		return errors.New("order not found on accrual service")
 	}
+	defer response.Body.Close()
 
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
+
+	w.logger.Info(string(body))
 
 	var result accrualResponse
 	err = json.Unmarshal(body, &response)
