@@ -28,7 +28,7 @@ func newRoutes(handler *chi.Mux, l *zap.Logger, u *usecase.UseCase, c *config.Co
 	handler.Post("/api/user/register", r.Register)
 	handler.Post("/api/user/login", r.Login)
 	handler.Post("/api/user/orders", r.CreateOrder)
-	handler.Post("/api/user/withdraw", r.CreateWithdraw)
+	handler.Post("/api/user/balance/withdraw", r.CreateWithdraw)
 
 	handler.Get("/api/user/orders", r.GetUserOrders)
 	handler.Get("/api/user/balance", r.GetUserBalance)
