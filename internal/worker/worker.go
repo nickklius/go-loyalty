@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -49,7 +50,7 @@ func (w *Worker) Run() {
 				w.logger.Info("job is come")
 				err := w.makeRequest(job)
 				if err != nil {
-					w.logger.Error("error when making request to the accural " + err.Error())
+					w.logger.Error("error when making request to the accrual " + err.Error())
 					continue
 				}
 			case <-w.done:
@@ -188,7 +189,7 @@ func (w *Worker) updateOrderStatus(result accrualResponse) error {
 		Accrual: result.Accrual,
 	}
 
-	err := w.pg.UpdateOrderStatus(nil, order)
+	err := w.pg.UpdateOrderStatus(context.TODO(), order)
 	if err != nil {
 		return err
 	}
