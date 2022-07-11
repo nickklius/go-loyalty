@@ -7,17 +7,17 @@ import (
 )
 
 type (
-	User interface {
-		CreateUser(ctx context.Context, user entity.User) error
-		CheckPassword(ctx context.Context, user entity.User) (entity.User, error)
-		GetUserBalance(ctx context.Context, userID string) (entity.UserBalance, error)
-		WithdrawFromBalance(ctx context.Context, withdraw entity.Withdraw) error
-	}
-
-	Order interface {
-		CreateOrder(ctx context.Context, order entity.Order) error
-		GetOrdersByUserID(ctx context.Context, userID string) ([]entity.Order, error)
-	}
+	//User interface {
+	//	CreateUser(ctx context.Context, user entity.User) error
+	//	CheckPassword(ctx context.Context, user entity.User) (entity.User, error)
+	//	GetUserBalance(ctx context.Context, userID string) (entity.UserBalance, error)
+	//	WithdrawFromBalance(ctx context.Context, withdraw entity.Withdraw) error
+	//}
+	//
+	//Order interface {
+	//	CreateOrder(ctx context.Context, order entity.Order) error
+	//	GetOrdersByUserID(ctx context.Context, userID string) ([]entity.Order, error)
+	//}
 
 	Repository interface {
 		StoreUser(ctx context.Context, user entity.User) error
@@ -27,5 +27,12 @@ type (
 		GetBalance(ctx context.Context, userID string) (entity.UserBalance, error)
 		Withdraw(ctx context.Context, withdraw entity.Withdraw) error
 		GetWithdrawals(ctx context.Context, userID string) ([]entity.Withdraw, error)
+		UpdateOrderStatus(ctx context.Context, order entity.Order) error
+	}
+
+	JobRepository interface {
+		AddJob(ctx context.Context, job entity.Job) error
+		GetJobs() ([]entity.Job, error)
+		DeleteJob(job entity.Job) error
 	}
 )

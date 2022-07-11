@@ -11,9 +11,11 @@ import (
 	"github.com/nickklius/go-loyalty/config"
 	"github.com/nickklius/go-loyalty/internal/handler"
 	"github.com/nickklius/go-loyalty/internal/httpserver"
+	"github.com/nickklius/go-loyalty/internal/storage/jobstorage"
 	"github.com/nickklius/go-loyalty/internal/storage/postgres"
 	"github.com/nickklius/go-loyalty/internal/usecase"
 	"github.com/nickklius/go-loyalty/internal/usecase/repo"
+	"github.com/nickklius/go-loyalty/internal/worker"
 )
 
 type App struct {
@@ -29,9 +31,20 @@ func Run(cfg *config.Config, logger *zap.Logger) {
 	}
 	defer pg.Close()
 
+	pgRepository := repo.NewPostgresRepository(pg)
+	jobStorage := jobstorage.NewJobStorage()
+	jobRepository := repo.NewJobRepository(jobStorage)
+
 	useCases := usecase.New(
-		repo.New(pg),
+		pgRepository,
+		jobRepository,
 	)
+
+	w, err := worker.NewWorker(pgRepository, jobRepository, logger, cfg)
+
+	go func() {
+		w.Run()
+	}()
 
 	h := chi.NewRouter()
 	handler.NewRouter(h, logger, useCases, cfg)
@@ -44,6 +57,7 @@ func Run(cfg *config.Config, logger *zap.Logger) {
 	select {
 	case s := <-interrupt:
 		logger.Info("app - Run - signal: " + s.String())
+		w.Done()
 	case err = <-httpServer.Notify():
 		logger.Error("app - Run - httpServer.Notify: " + err.Error())
 	}

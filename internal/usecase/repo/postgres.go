@@ -17,7 +17,7 @@ type Repository struct {
 	*postgres.Postgres
 }
 
-func New(pg *postgres.Postgres) *Repository {
+func NewPostgresRepository(pg *postgres.Postgres) *Repository {
 	return &Repository{pg}
 }
 
@@ -277,4 +277,97 @@ func (r *Repository) GetWithdrawals(ctx context.Context, userID string) ([]entit
 	}
 
 	return withdrawals, nil
+}
+
+func (r *Repository) getUserIDByOrder(ctx context.Context, order string) (string, error) {
+	var userID string
+
+	sql, args, err := r.Builder.
+		Select("user_id").
+		From("orders").
+		Where("id = ?", order).
+		ToSql()
+	if err != nil {
+		return userID, fmt.Errorf("repo - getUserIDByOrder - r.Builder: %w", err)
+	}
+
+	row := r.Pool.QueryRow(ctx, sql, args...)
+
+	err = row.Scan(&userID)
+	if err != nil {
+		return userID, err
+	}
+
+	return userID, nil
+}
+
+func (r *Repository) getUserByID(ctx context.Context, userID string) (entity.User, error) {
+	var user entity.User
+
+	sql, args, err := r.Builder.
+		Select("id, balance").
+		From("users").
+		Where("id = ?", userID).
+		ToSql()
+	if err != nil {
+		return user, fmt.Errorf("repo - getUserByID - r.Builder: %w", err)
+	}
+
+	row := r.Pool.QueryRow(ctx, sql, args...)
+
+	err = row.Scan(&user)
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
+}
+
+func (r *Repository) UpdateOrderStatus(ctx context.Context, order entity.Order) error {
+	userID, err := r.getUserIDByOrder(ctx, order.Number)
+	if err != nil {
+		return err
+	}
+
+	user, err := r.getUserByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	tx, err := r.Pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	sql, args, err := r.Builder.
+		Update("orders").
+		Set("accrual", order.Accrual).
+		Set("status", order.Status).
+		Where("number = ?", order.Number).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("repo - UpdateOrderStatus - r.Builder: %w", err)
+	}
+
+	_, err = tx.Exec(ctx, sql, args...)
+	if err != nil {
+		return err
+	}
+
+	sql, args, err = r.Builder.
+		Update("users").
+		Set("balance", user.UserBalance.Balance+order.Accrual).
+		Where("id = ?", user.ID).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("repo - UpdateOrderStatus / UserBalance - r.Builder: %w", err)
+	}
+
+	_, err = tx.Exec(ctx, sql, args...)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
 }

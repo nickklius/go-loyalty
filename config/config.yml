@@ -1,7 +1,7 @@
 app:
   run-address: ':8080'
 accrual:
-  accrual-address: ''
+  accrual-address: 'http://localhost:8082'
 db:
   database-uri: ''
 auth:

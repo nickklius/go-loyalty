@@ -9,11 +9,13 @@ import (
 
 type UseCase struct {
 	repo Repository
+	job  JobRepository
 }
 
-func New(r Repository) *UseCase {
+func New(r Repository, j JobRepository) *UseCase {
 	return &UseCase{
 		repo: r,
+		job:  j,
 	}
 }
 
@@ -85,4 +87,12 @@ func (uc *UseCase) GetWithdrawalsByUserID(ctx context.Context, userID string) ([
 	}
 
 	return w, nil
+}
+
+func (uc *UseCase) AddJobToRepo(ctx context.Context, job entity.Job) error {
+	err := uc.job.AddJob(ctx, job)
+	if err != nil {
+		return fmt.Errorf("UseCase - AddJobToRepo - u.job.AddJob: %w", err)
+	}
+	return nil
 }

@@ -153,12 +153,13 @@ func (h *Handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	job := entity.Job{OrderID: strconv.Itoa(number)}
+	err = h.u.AddJobToRepo(r.Context(), job)
+
 	w.WriteHeader(http.StatusAccepted)
 }
 
 func (h *Handler) GetUserOrders(w http.ResponseWriter, r *http.Request) {
-	r.Header.Add("Content-Type", "application/json")
-
 	userID := middleware.GetClaims(r.Context())
 
 	orders, err := h.u.GetOrdersByUserID(r.Context(), userID)
