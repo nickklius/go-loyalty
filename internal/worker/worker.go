@@ -153,6 +153,15 @@ func (w *Worker) makeRequest(job entity.Job) error {
 		return errors.New("order processing is not finished")
 	}
 
+	if result.Status == "INVALID" {
+		w.logger.Info("order will not be processed")
+		err = w.closeJob(job)
+		if err != nil {
+			return errors.New("error when removing invalid job from queue")
+		}
+		return errors.New("order processing is not finished")
+	}
+
 	err = w.updateOrderStatus(result)
 	if err != nil {
 		w.logger.Info("order processing is not finished")
@@ -160,6 +169,9 @@ func (w *Worker) makeRequest(job entity.Job) error {
 	}
 
 	err = w.closeJob(job)
+	if err != nil {
+		return errors.New("error when removing success job from queue")
+	}
 
 	return nil
 }
