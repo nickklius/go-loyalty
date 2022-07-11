@@ -40,7 +40,7 @@ func Run(cfg *config.Config, logger *zap.Logger) {
 		jobRepository,
 	)
 
-	w, err := worker.NewWorker(pgRepository, jobRepository, logger, cfg)
+	w := worker.NewWorker(pgRepository, jobRepository, logger, cfg)
 
 	go func() {
 		w.Run()

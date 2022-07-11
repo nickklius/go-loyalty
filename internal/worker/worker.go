@@ -29,7 +29,7 @@ type accrualResponse struct {
 	Accrual float64 `json:"accrual"`
 }
 
-func NewWorker(p usecase.Repository, j usecase.JobRepository, l *zap.Logger, c *config.Config) (*Worker, error) {
+func NewWorker(p usecase.Repository, j usecase.JobRepository, l *zap.Logger, c *config.Config) *Worker {
 	return &Worker{
 		pg:     p,
 		repo:   j,
@@ -37,7 +37,7 @@ func NewWorker(p usecase.Repository, j usecase.JobRepository, l *zap.Logger, c *
 		cfg:    c,
 		stream: make(chan entity.Job),
 		done:   make(chan struct{}),
-	}, nil
+	}
 }
 
 func (w *Worker) Run() {
@@ -66,7 +66,7 @@ func (w *Worker) Run() {
 }
 
 func (w *Worker) scheduler() *time.Ticker {
-	ticker := time.NewTicker(time.Second * 10)
+	ticker := time.NewTicker(time.Second * 5)
 	w.logger.Info("start scheduler")
 
 	go func() {
@@ -96,6 +96,7 @@ func (w *Worker) pushJob(job entity.Job) {
 }
 
 func (w *Worker) runJob() error {
+	ticker := time.NewTicker(time.Second * 1)
 	jobs, err := w.repo.GetJobs()
 	if err != nil {
 		return err
@@ -103,8 +104,10 @@ func (w *Worker) runJob() error {
 
 	for _, j := range jobs {
 		w.pushJob(j)
+		<-ticker.C
 	}
 
+	ticker.Stop()
 	return nil
 }
 
