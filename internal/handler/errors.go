@@ -20,5 +20,9 @@ func parseError(err error) (int, string) {
 		return http.StatusConflict, err.Error()
 	}
 
+	if errors.Is(err, usecase.ErrDBNotEnoughBalanceForWithdrawal) {
+		return http.StatusPaymentRequired, err.Error()
+	}
+
 	return http.StatusInternalServerError, err.Error()
 }

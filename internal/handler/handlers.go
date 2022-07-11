@@ -28,6 +28,7 @@ func newRoutes(handler *chi.Mux, l *zap.Logger, u *usecase.UseCase, c *config.Co
 	handler.Post("/api/user/register", r.Register)
 	handler.Post("/api/user/login", r.Login)
 	handler.Post("/api/user/orders", r.CreateOrder)
+	handler.Post("/api/user/withdraw", r.CreateWithdraw)
 
 	handler.Get("/api/user/orders", r.GetOrders)
 	handler.Get("/api/user/balance", r.GetUserBalance)
@@ -126,7 +127,6 @@ func (h *Handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	number, err := strconv.Atoi(string(body))
-
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		return
@@ -208,4 +208,50 @@ func (h *Handler) GetUserBalance(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+}
+
+func (h *Handler) CreateWithdraw(w http.ResponseWriter, r *http.Request) {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer r.Body.Close()
+
+	if len(body) == 0 {
+		http.Error(w, "nil body", http.StatusBadRequest)
+		return
+	}
+
+	userID := middleware.GetClaims(r.Context())
+
+	var withdraw entity.Withdraw
+
+	err = json.Unmarshal(body, &withdraw)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	orderNumber, err := strconv.Atoi(withdraw.OrderID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+
+	if !utils.ValidLuhnNumber(orderNumber) {
+		http.Error(w, "", http.StatusUnprocessableEntity)
+		return
+	}
+
+	withdraw.UserID = userID
+
+	err = h.u.WithdrawFromBalance(r.Context(), withdraw)
+	if err != nil {
+		statusCode, msg := parseError(err)
+		http.Error(w, msg, statusCode)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

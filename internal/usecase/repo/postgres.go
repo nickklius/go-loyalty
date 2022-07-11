@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
@@ -20,11 +21,11 @@ func New(pg *postgres.Postgres) *Repository {
 	return &Repository{pg}
 }
 
-func (r *Repository) StoreUser(ctx context.Context, u entity.User) error {
+func (r *Repository) StoreUser(ctx context.Context, user entity.User) error {
 	sql, args, err := r.Builder.
 		Insert("users").
 		Columns("login, password").
-		Values(u.Login, u.Password).
+		Values(user.Login, user.Password).
 		ToSql()
 	if err != nil {
 		return fmt.Errorf("repo - StoreUser - r.Builder: %w", err)
@@ -66,7 +67,6 @@ func (r *Repository) StoreOrder(ctx context.Context, order entity.Order) error {
 		Columns("user_id, number, status").
 		Values(order.UserID, order.Number, order.Status).
 		ToSql()
-
 	if err != nil {
 		return fmt.Errorf("repo - StoreOrder - r.Builder: %w", err)
 	}
@@ -169,4 +169,77 @@ func (r *Repository) GetBalance(ctx context.Context, userID string) (entity.User
 	}
 
 	return ub, nil
+}
+
+func (r *Repository) Withdraw(ctx context.Context, withdraw entity.Withdraw) error {
+	tx, err := r.Pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	sql, args, err := r.Builder.
+		Select("balance, spent").
+		From("users").
+		Where("id = ?", withdraw.UserID).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("repo - GetCurrentBalance - r.Builder: %w", err)
+	}
+
+	row := tx.QueryRow(ctx, sql, args...)
+
+	var balance, spent float64
+
+	err = row.Scan(&balance, &spent)
+	if err != nil {
+		return fmt.Errorf("no row error %w", err)
+	}
+
+	if withdraw.Sum > balance {
+		return usecase.ErrDBNotEnoughBalanceForWithdrawal
+	}
+
+	sql, args, err = r.Builder.
+		Update("users").
+		Set("balance", balance-withdraw.Sum).
+		Set("spent", spent+withdraw.Sum).
+		Where("id = ?", withdraw.UserID).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("repo - UpdateUserBalance - r.Builder: %w", err)
+	}
+
+	_, err = tx.Exec(ctx, sql, args...)
+	if err != nil {
+		return err
+	}
+
+	withdraw.Status = "PROCESSED"
+	withdraw.ProcessedAt = time.Now()
+
+	sql, args, err = r.Builder.
+		Insert("withdrawals").
+		Columns("user_id, order_num, sum, status, processed_at").
+		Values(withdraw.UserID, withdraw.OrderID, withdraw.Sum, withdraw.Status, withdraw.ProcessedAt).
+		ToSql()
+	if err != nil {
+		return fmt.Errorf("repo - StoreWithdraw - r.Builder: %w", err)
+	}
+
+	_, err = tx.Exec(ctx, sql, args...)
+
+	var pgErr *pgconn.PgError
+
+	if errors.As(err, &pgErr) {
+		if pgErr.Code == pgerrcode.UniqueViolation {
+			return usecase.ErrDBDuplicatedEntry
+		}
+	}
+
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
 }

@@ -66,3 +66,12 @@ func (uc *UseCase) GetBalanceByUserID(ctx context.Context, userID string) (entit
 
 	return ub, nil
 }
+
+func (uc *UseCase) WithdrawFromBalance(ctx context.Context, withdraw entity.Withdraw) error {
+	err := uc.repo.Withdraw(ctx, withdraw)
+	if err != nil {
+		return fmt.Errorf("UseCase - Withdraw - u.repo.Withdraw: %w", err)
+	}
+
+	return nil
+}
