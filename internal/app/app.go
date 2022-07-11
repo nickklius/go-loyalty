@@ -31,8 +31,9 @@ func Run(cfg *config.Config, logger *zap.Logger) {
 	}
 	defer pg.Close()
 
-	pgRepository := repo.NewPostgresRepository(pg)
 	jobStorage := jobstorage.NewJobStorage()
+
+	pgRepository := repo.NewPostgresRepository(pg)
 	jobRepository := repo.NewJobRepository(jobStorage)
 
 	useCases := usecase.New(
@@ -40,7 +41,12 @@ func Run(cfg *config.Config, logger *zap.Logger) {
 		jobRepository,
 	)
 
-	w := worker.NewWorker(pgRepository, jobRepository, logger, cfg)
+	w := worker.New(
+		pgRepository,
+		jobRepository,
+		logger,
+		cfg,
+	)
 
 	go func() {
 		w.Run()
@@ -48,7 +54,6 @@ func Run(cfg *config.Config, logger *zap.Logger) {
 
 	h := chi.NewRouter()
 	handler.NewRouter(h, logger, useCases, cfg)
-
 	httpServer := httpserver.New(h, httpserver.Port(cfg.App.RunAddress))
 
 	interrupt := make(chan os.Signal, 1)

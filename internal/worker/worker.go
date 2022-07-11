@@ -3,7 +3,6 @@ package worker
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"io"
 	"net/http"
 	"time"
@@ -30,7 +29,7 @@ type accrualResponse struct {
 	Accrual float64 `json:"accrual"`
 }
 
-func NewWorker(p usecase.Repository, j usecase.JobRepository, l *zap.Logger, c *config.Config) *Worker {
+func New(p usecase.Repository, j usecase.JobRepository, l *zap.Logger, c *config.Config) *Worker {
 	return &Worker{
 		pg:     p,
 		repo:   j,
@@ -47,10 +46,9 @@ func (w *Worker) Run() {
 		for {
 			select {
 			case job := <-w.stream:
-				w.logger.Info("job is come " + job.OrderID)
 				err := w.makeRequest(job)
 				if err != nil {
-					w.logger.Error("error when making request to the accrual " + err.Error())
+					w.logger.Error("error accrual: " + err.Error())
 					continue
 				}
 			case <-w.done:
@@ -59,16 +57,15 @@ func (w *Worker) Run() {
 		}
 	}()
 
-	sched := w.scheduler()
+	scheduler := w.scheduler()
 
 	<-w.done
 
-	sched.Stop()
+	scheduler.Stop()
 }
 
 func (w *Worker) scheduler() *time.Ticker {
-	ticker := time.NewTicker(time.Second * 1)
-	w.logger.Info("start scheduler")
+	ticker := time.NewTicker(time.Second * 5)
 
 	go func() {
 		for {
@@ -76,7 +73,6 @@ func (w *Worker) scheduler() *time.Ticker {
 			case <-ticker.C:
 				err := w.runJob()
 				if err != nil {
-					w.logger.Error("error when job running" + err.Error())
 					continue
 				}
 			case <-w.done:
@@ -123,21 +119,18 @@ func (w *Worker) closeJob(job entity.Job) error {
 func (w *Worker) makeRequest(job entity.Job) error {
 	response, err := http.Get(w.cfg.Accrual.AccrualAddress + "/api/orders/" + job.OrderID)
 	if err != nil {
-		w.logger.Info("Problem with access accrual service")
-		return errors.New("problem with access accrual service")
+		return ErrNoAccessToAccrual
 	}
 
-	if response.StatusCode == http.StatusTooManyRequests {
-		w.logger.Info("Accrual service overloaded")
-		return errors.New("accrual service overloaded")
-	}
-	if response.StatusCode == http.StatusInternalServerError {
-		w.logger.Info("Accrual service is unavailable")
-		return errors.New("accrual service is unavailable")
-	}
-	if response.StatusCode == http.StatusNotFound || response.StatusCode == http.StatusNoContent {
-		w.logger.Info("Order not found on accrual service")
-		return errors.New("order not found on accrual service")
+	switch response.StatusCode {
+	case http.StatusTooManyRequests:
+		return ErrAccrualOverloaded
+	case http.StatusInternalServerError:
+		return ErrNoAccessToAccrual
+	case http.StatusNotFound:
+		return ErrOrderNotFound
+	case http.StatusNoContent:
+		return ErrOrderNotFound
 	}
 	defer response.Body.Close()
 
@@ -147,34 +140,37 @@ func (w *Worker) makeRequest(job entity.Job) error {
 	}
 
 	var result accrualResponse
+
 	err = json.Unmarshal(body, &result)
 	if err != nil {
 		return err
 	}
 
-	w.logger.Info("result from accrual")
-	w.logger.Info(response.Status + " : " + result.Status)
-
 	if result.Status == "REGISTERED" || result.Status == "PROCESSING" {
-		_ = w.updateOrderStatus(result)
-		return errors.New("order processing is not finished")
+		err = w.updateOrderStatus(result)
+		if err != nil {
+			return err
+		}
+		return ErrOrderIsInProcessing
 	}
 
 	if result.Status == "INVALID" {
-		_ = w.updateOrderStatus(result)
+		err = w.updateOrderStatus(result)
+		if err != nil {
+			return err
+		}
 		_ = w.closeJob(job)
-		return errors.New("order invalid is")
+		return ErrOrderIsInvalid
 	}
 
 	err = w.updateOrderStatus(result)
 	if err != nil {
-		w.logger.Info(err.Error())
-		return errors.New("error in storing order status update")
+		return err
 	}
 
 	err = w.closeJob(job)
 	if err != nil {
-		return errors.New("error when removing success job from queue")
+		return err
 	}
 
 	return nil

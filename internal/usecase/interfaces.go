@@ -7,18 +7,6 @@ import (
 )
 
 type (
-	//User interface {
-	//	CreateUser(ctx context.Context, user entity.User) error
-	//	CheckPassword(ctx context.Context, user entity.User) (entity.User, error)
-	//	GetUserBalance(ctx context.Context, userID string) (entity.UserBalance, error)
-	//	WithdrawFromBalance(ctx context.Context, withdraw entity.Withdraw) error
-	//}
-	//
-	//Order interface {
-	//	CreateOrder(ctx context.Context, order entity.Order) error
-	//	GetOrdersByUserID(ctx context.Context, userID string) ([]entity.Order, error)
-	//}
-
 	Repository interface {
 		StoreUser(ctx context.Context, user entity.User) error
 		CheckUser(ctx context.Context, user entity.User) (entity.User, error)
