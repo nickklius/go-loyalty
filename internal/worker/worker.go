@@ -126,7 +126,6 @@ func (w *Worker) makeRequest(job entity.Job) error {
 		w.logger.Info("Problem with access accrual service")
 		return errors.New("problem with access accrual service")
 	}
-	defer response.Body.Close()
 
 	if response.StatusCode == http.StatusTooManyRequests {
 		w.logger.Info("Accrual service overloaded")
@@ -145,6 +144,7 @@ func (w *Worker) makeRequest(job entity.Job) error {
 	if err != nil {
 		return err
 	}
+	defer response.Body.Close()
 
 	var result accrualResponse
 	err = json.Unmarshal(body, &response)
@@ -153,7 +153,7 @@ func (w *Worker) makeRequest(job entity.Job) error {
 	}
 
 	w.logger.Info("result from accrual")
-	w.logger.Info(string(rune(response.StatusCode)) + " : " + result.Status)
+	w.logger.Info(response.Status + " : " + result.Status)
 
 	if result.Status == "REGISTERED" || result.Status == "PROCESSING" {
 		_ = w.updateOrderStatus(result)
