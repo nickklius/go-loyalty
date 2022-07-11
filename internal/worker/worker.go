@@ -149,7 +149,7 @@ func (w *Worker) makeRequest(job entity.Job) error {
 	w.logger.Info(string(body))
 
 	var result accrualResponse
-	err = json.Unmarshal(body, &response)
+	err = json.Unmarshal(body, &result)
 	if err != nil {
 		return err
 	}
@@ -168,8 +168,11 @@ func (w *Worker) makeRequest(job entity.Job) error {
 		return errors.New("order invalid is")
 	}
 
+	w.logger.Info(string(result))
+
 	err = w.updateOrderStatus(result)
 	if err != nil {
+
 		return errors.New("error in storing order status update")
 	}
 
