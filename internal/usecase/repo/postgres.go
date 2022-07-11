@@ -315,7 +315,7 @@ func (r *Repository) getUserByID(ctx context.Context, userID string) (entity.Use
 
 	row := r.Pool.QueryRow(ctx, sql, args...)
 
-	err = row.Scan(&user)
+	err = row.Scan(&user.ID, &user.Balance)
 	if err != nil {
 		return user, err
 	}
