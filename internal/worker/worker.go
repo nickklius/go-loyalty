@@ -168,8 +168,6 @@ func (w *Worker) makeRequest(job entity.Job) error {
 		return errors.New("order invalid is")
 	}
 
-	w.logger.Info(string(result))
-
 	err = w.updateOrderStatus(result)
 	if err != nil {
 
