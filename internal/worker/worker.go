@@ -47,12 +47,12 @@ func (w *Worker) Run() {
 		for {
 			select {
 			case job := <-w.stream:
-				w.logger.Info("job is come")
-				err := w.makeRequest(job)
-				if err != nil {
-					w.logger.Error("error when making request to the accrual " + err.Error())
-					continue
-				}
+				w.logger.Info("job is come " + job.OrderID)
+				//err := w.makeRequest(job)
+				//if err != nil {
+				//	w.logger.Error("error when making request to the accrual " + err.Error())
+				//	continue
+				//}
 			case <-w.done:
 				break loop
 			}
@@ -122,12 +122,12 @@ func (w *Worker) closeJob(job entity.Job) error {
 
 func (w *Worker) makeRequest(job entity.Job) error {
 	response, err := http.Get(w.cfg.Accrual.AccrualAddress + "/api/orders/" + job.OrderID)
-	defer response.Body.Close()
-
 	if err != nil {
 		w.logger.Info("Problem with access accrual service")
 		return errors.New("problem with access accrual service")
 	}
+	defer response.Body.Close()
+
 	if response.StatusCode == http.StatusTooManyRequests {
 		w.logger.Info("Accrual service overloaded")
 		return errors.New("accrual service overloaded")
@@ -181,9 +181,7 @@ func (w *Worker) makeRequest(job entity.Job) error {
 }
 
 func (w *Worker) updateOrderStatus(result accrualResponse) error {
-	var order entity.Order
-
-	order = entity.Order{
+	order := entity.Order{
 		Number:  result.Order,
 		Status:  result.Status,
 		Accrual: result.Accrual,
