@@ -67,7 +67,7 @@ func (w *Worker) Run() {
 }
 
 func (w *Worker) scheduler() *time.Ticker {
-	ticker := time.NewTicker(time.Second * 5)
+	ticker := time.NewTicker(time.Second * 1)
 	w.logger.Info("start scheduler")
 
 	go func() {
@@ -152,6 +152,9 @@ func (w *Worker) makeRequest(job entity.Job) error {
 		return err
 	}
 
+	w.logger.Info("result from accrual")
+	w.logger.Info(string(rune(response.StatusCode)) + " : " + result.Status)
+
 	if result.Status == "REGISTERED" || result.Status == "PROCESSING" {
 		_ = w.updateOrderStatus(result)
 		return errors.New("order processing is not finished")
@@ -160,12 +163,11 @@ func (w *Worker) makeRequest(job entity.Job) error {
 	if result.Status == "INVALID" {
 		_ = w.updateOrderStatus(result)
 		_ = w.closeJob(job)
-		return errors.New("order processing is not finished")
+		return errors.New("order invalid is")
 	}
 
 	err = w.updateOrderStatus(result)
 	if err != nil {
-		w.logger.Info("order processing is not finished")
 		return errors.New("error in storing order status update")
 	}
 

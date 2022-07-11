@@ -154,7 +154,7 @@ func (h *Handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	job := entity.Job{OrderID: strconv.Itoa(number)}
-	err = h.u.AddJobToRepo(r.Context(), job)
+	_ = h.u.AddJobToRepo(r.Context(), job)
 
 	w.WriteHeader(http.StatusAccepted)
 }
