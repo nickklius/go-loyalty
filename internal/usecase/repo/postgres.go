@@ -285,7 +285,7 @@ func (r *Repository) getUserIDByOrder(ctx context.Context, order string) (string
 	sql, args, err := r.Builder.
 		Select("user_id").
 		From("orders").
-		Where("id = ?", order).
+		Where("number = ?", order).
 		ToSql()
 	if err != nil {
 		return userID, fmt.Errorf("repo - getUserIDByOrder - r.Builder: %w", err)
