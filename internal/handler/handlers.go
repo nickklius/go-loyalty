@@ -30,8 +30,9 @@ func newRoutes(handler *chi.Mux, l *zap.Logger, u *usecase.UseCase, c *config.Co
 	handler.Post("/api/user/orders", r.CreateOrder)
 	handler.Post("/api/user/withdraw", r.CreateWithdraw)
 
-	handler.Get("/api/user/orders", r.GetOrders)
+	handler.Get("/api/user/orders", r.GetUserOrders)
 	handler.Get("/api/user/balance", r.GetUserBalance)
+	handler.Get("/api/user/withdrawals", r.GetUserWithdrawals)
 }
 
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
@@ -155,7 +156,7 @@ func (h *Handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusAccepted)
 }
 
-func (h *Handler) GetOrders(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetUserOrders(w http.ResponseWriter, r *http.Request) {
 	r.Header.Add("Content-Type", "application/json")
 
 	userID := middleware.GetClaims(r.Context())
@@ -254,4 +255,33 @@ func (h *Handler) CreateWithdraw(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func (h *Handler) GetUserWithdrawals(w http.ResponseWriter, r *http.Request) {
+	userID := middleware.GetClaims(r.Context())
+
+	withdrawals, err := h.u.GetWithdrawalsByUserID(r.Context(), userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if len(withdrawals) == 0 {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	response, err := json.Marshal(withdrawals)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(response)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }

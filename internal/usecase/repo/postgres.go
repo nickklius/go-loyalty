@@ -243,3 +243,38 @@ func (r *Repository) Withdraw(ctx context.Context, withdraw entity.Withdraw) err
 
 	return tx.Commit(ctx)
 }
+
+func (r *Repository) GetWithdrawals(ctx context.Context, userID string) ([]entity.Withdraw, error) {
+	var withdrawals []entity.Withdraw
+
+	sql, args, err := r.Builder.
+		Select("order_num, sum, processed_at").
+		From("withdrawals").
+		Where("user_id = ?", userID).
+		ToSql()
+	if err != nil {
+		return withdrawals, fmt.Errorf("repo - GetWithdrawals - r.Builder: %w", err)
+	}
+
+	rows, err := r.Pool.Query(ctx, sql, args...)
+	if err != nil {
+		return withdrawals, err
+	}
+
+	for rows.Next() {
+		var withdraw entity.Withdraw
+
+		err = rows.Scan(&withdraw.OrderID, &withdraw.Sum, &withdraw.ProcessedAt)
+		if err != nil {
+			return withdrawals, err
+		}
+
+		withdrawals = append(withdrawals, withdraw)
+	}
+
+	if err = rows.Err(); err != nil {
+		return withdrawals, err
+	}
+
+	return withdrawals, nil
+}

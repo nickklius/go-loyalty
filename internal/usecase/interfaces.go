@@ -26,5 +26,6 @@ type (
 		GetOrders(ctx context.Context, userID string) ([]entity.Order, error)
 		GetBalance(ctx context.Context, userID string) (entity.UserBalance, error)
 		Withdraw(ctx context.Context, withdraw entity.Withdraw) error
+		GetWithdrawals(ctx context.Context, userID string) ([]entity.Withdraw, error)
 	}
 )
