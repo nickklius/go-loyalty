@@ -16,8 +16,5 @@ func main() {
 		logger.Error(err.Error())
 	}
 
-	//srv := &http.Server{Addr: cfg.App.RunAddress, Handler: nil}
-	//srv.ListenAndServe()
-
 	app.Run(cfg, logger)
 }
