@@ -17,22 +17,26 @@ import (
 )
 
 type Handler struct {
-	u usecase.UseCase
-	l zap.Logger
-	c config.Config
+	u *usecase.UseCase
+	l *zap.Logger
+	c *config.Config
 }
 
 func newRoutes(handler *chi.Mux, l *zap.Logger, u *usecase.UseCase, c *config.Config) {
-	r := &Handler{*u, *l, *c}
+	r := &Handler{u, l, c}
 
 	handler.Post("/api/user/register", r.Register)
 	handler.Post("/api/user/login", r.Login)
-	handler.Post("/api/user/orders", r.CreateOrder)
-	handler.Post("/api/user/balance/withdraw", r.CreateWithdraw)
 
-	handler.Get("/api/user/orders", r.GetUserOrders)
-	handler.Get("/api/user/balance", r.GetUserBalance)
-	handler.Get("/api/user/withdrawals", r.GetUserWithdrawals)
+	handler.Group(func(handler chi.Router) {
+		handler.Use(middleware.JWTMiddleware(c.Auth))
+
+		handler.Post("/api/user/orders", r.CreateOrder)
+		handler.Post("/api/user/balance/withdraw", r.CreateWithdraw)
+		handler.Get("/api/user/orders", r.GetUserOrders)
+		handler.Get("/api/user/balance", r.GetUserBalance)
+		handler.Get("/api/user/withdrawals", r.GetUserWithdrawals)
+	})
 }
 
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {

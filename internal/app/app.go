@@ -18,10 +18,6 @@ import (
 	"github.com/nickklius/go-loyalty/internal/worker"
 )
 
-type App struct {
-	cfg config.Config
-}
-
 func Run(cfg *config.Config, logger *zap.Logger) {
 	Migrate(cfg.DB.DatabaseURI)
 
@@ -48,9 +44,7 @@ func Run(cfg *config.Config, logger *zap.Logger) {
 		cfg,
 	)
 
-	go func() {
-		w.Run()
-	}()
+	go w.Run()
 
 	h := chi.NewRouter()
 	handler.NewRouter(h, logger, useCases, cfg)
