@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"os"
 	"os/signal"
 	"syscall"
@@ -27,6 +28,9 @@ func Run(cfg *config.Config, logger *zap.Logger) {
 	}
 	defer pg.Close()
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	jobStorage := jobstorage.NewJobStorage()
 
 	pgRepository := repo.NewPostgresRepository(pg)
@@ -44,7 +48,7 @@ func Run(cfg *config.Config, logger *zap.Logger) {
 		cfg,
 	)
 
-	go w.Run()
+	go w.Run(ctx)
 
 	h := chi.NewRouter()
 	handler.NewRouter(h, logger, useCases, cfg)
@@ -56,7 +60,7 @@ func Run(cfg *config.Config, logger *zap.Logger) {
 	select {
 	case s := <-interrupt:
 		logger.Info("app - Run - signal: " + s.String())
-		w.Done()
+		//cancel()
 	case err = <-httpServer.Notify():
 		logger.Error("app - Run - httpServer.Notify: " + err.Error())
 	}

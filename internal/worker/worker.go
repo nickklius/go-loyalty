@@ -20,13 +20,12 @@ type Worker struct {
 	logger *zap.Logger
 	cfg    *config.Config
 	stream chan entity.Job
-	done   chan struct{}
 }
 
 type accrualResponse struct {
-	Order   string  `json:"order"`
-	Status  string  `json:"status"`
-	Accrual float64 `json:"accrual"`
+	Order   string             `json:"order"`
+	Status  entity.OrderStatus `json:"status"`
+	Accrual float64            `json:"accrual"`
 }
 
 func New(p usecase.Repository, j usecase.JobRepository, l *zap.Logger, c *config.Config) *Worker {
@@ -36,11 +35,10 @@ func New(p usecase.Repository, j usecase.JobRepository, l *zap.Logger, c *config
 		logger: l,
 		cfg:    c,
 		stream: make(chan entity.Job),
-		done:   make(chan struct{}),
 	}
 }
 
-func (w *Worker) Run() {
+func (w *Worker) Run(ctx context.Context) {
 	go func() {
 	loop:
 		for {
@@ -51,20 +49,20 @@ func (w *Worker) Run() {
 					w.logger.Error("error accrual: " + err.Error())
 					continue
 				}
-			case <-w.done:
+			case <-ctx.Done():
 				break loop
 			}
 		}
 	}()
 
-	scheduler := w.scheduler()
+	scheduler := w.scheduler(ctx)
 
-	<-w.done
+	<-ctx.Done()
 
 	scheduler.Stop()
 }
 
-func (w *Worker) scheduler() *time.Ticker {
+func (w *Worker) scheduler(ctx context.Context) *time.Ticker {
 	ticker := time.NewTicker(time.Second * 5)
 
 	go func() {
@@ -75,17 +73,13 @@ func (w *Worker) scheduler() *time.Ticker {
 				if err != nil {
 					continue
 				}
-			case <-w.done:
+			case <-ctx.Done():
 				return
 			}
 		}
 	}()
 
 	return ticker
-}
-
-func (w *Worker) Done() {
-	w.done <- struct{}{}
 }
 
 func (w *Worker) pushJob(job entity.Job) {
@@ -146,7 +140,7 @@ func (w *Worker) makeRequest(job entity.Job) error {
 		return err
 	}
 
-	if result.Status == "REGISTERED" || result.Status == "PROCESSING" {
+	if result.Status == entity.OrderStatusRegistered || result.Status == entity.OrderStatusProcessing {
 		err = w.updateOrderStatus(result)
 		if err != nil {
 			return err
@@ -154,7 +148,7 @@ func (w *Worker) makeRequest(job entity.Job) error {
 		return ErrOrderIsInProcessing
 	}
 
-	if result.Status == "INVALID" {
+	if result.Status == entity.OrderStatusInvalid {
 		err = w.updateOrderStatus(result)
 		if err != nil {
 			return err
@@ -177,12 +171,10 @@ func (w *Worker) makeRequest(job entity.Job) error {
 }
 
 func (w *Worker) updateOrderStatus(result accrualResponse) error {
-	w.logger.Info(result.Order + ":" + result.Status)
-
 	order := entity.Order{
-		Number:  result.Order,
-		Status:  result.Status,
-		Accrual: result.Accrual,
+		Number:      result.Order,
+		OrderStatus: result.Status,
+		Accrual:     result.Accrual,
 	}
 
 	err := w.pg.UpdateOrderStatus(context.TODO(), order)

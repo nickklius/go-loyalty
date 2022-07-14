@@ -65,7 +65,7 @@ func (r *Repository) StoreOrder(ctx context.Context, order entity.Order) error {
 	sql, args, err := r.Builder.
 		Insert("orders").
 		Columns("user_id, number, status").
-		Values(order.UserID, order.Number, order.Status).
+		Values(order.UserID, order.Number, order.OrderStatus).
 		ToSql()
 	if err != nil {
 		return fmt.Errorf("repo - StoreOrder - r.Builder: %w", err)
@@ -112,7 +112,7 @@ func (r *Repository) GetOrders(ctx context.Context, userID string) ([]entity.Ord
 	for rows.Next() {
 		var order entity.Order
 
-		err = rows.Scan(&order.Number, &order.Status, &order.Accrual, &order.UploadedAt)
+		err = rows.Scan(&order.Number, &order.OrderStatus, &order.Accrual, &order.UploadedAt)
 		if err != nil {
 			return orders, err
 		}
@@ -141,7 +141,7 @@ func (r *Repository) getOrder(ctx context.Context, number string) (entity.Order,
 
 	row := r.Pool.QueryRow(ctx, sql, args...)
 
-	err = row.Scan(&order.ID, &order.UserID, &order.Number, &order.Status, &order.UploadedAt, &order.Accrual)
+	err = row.Scan(&order.ID, &order.UserID, &order.Number, &order.OrderStatus, &order.UploadedAt, &order.Accrual)
 	if err != nil {
 		return order, err
 	}
@@ -343,7 +343,7 @@ func (r *Repository) UpdateOrderStatus(ctx context.Context, order entity.Order) 
 	sql, args, err := r.Builder.
 		Update("orders").
 		Set("accrual", order.Accrual).
-		Set("status", order.Status).
+		Set("status", order.OrderStatus).
 		Where("number = ?", order.Number).
 		ToSql()
 	if err != nil {

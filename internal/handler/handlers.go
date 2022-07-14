@@ -145,9 +145,9 @@ func (h *Handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetClaims(r.Context())
 
 	order := entity.Order{
-		UserID: userID,
-		Number: strconv.Itoa(number),
-		Status: "NEW",
+		UserID:      userID,
+		Number:      strconv.Itoa(number),
+		OrderStatus: entity.OrderStatusNew,
 	}
 
 	err = h.u.CreateOrder(r.Context(), order)
