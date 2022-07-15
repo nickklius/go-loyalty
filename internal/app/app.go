@@ -34,7 +34,7 @@ func Run(cfg *config.Config, logger *zap.Logger) {
 	jobStorage := jobstorage.NewJobStorage()
 
 	pgRepository := repo.NewPostgresRepository(pg)
-	jobRepository := repo.NewJobRepository(jobStorage)
+	jobRepository := repo.NewJobRepository(jobStorage, pg)
 
 	useCases := usecase.New(
 		pgRepository,
@@ -60,7 +60,6 @@ func Run(cfg *config.Config, logger *zap.Logger) {
 	select {
 	case s := <-interrupt:
 		logger.Info("app - Run - signal: " + s.String())
-		//cancel()
 	case err = <-httpServer.Notify():
 		logger.Error("app - Run - httpServer.Notify: " + err.Error())
 	}

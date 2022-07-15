@@ -69,7 +69,7 @@ func (w *Worker) scheduler(ctx context.Context) *time.Ticker {
 		for {
 			select {
 			case <-ticker.C:
-				err := w.runJob()
+				err := w.runJob(ctx)
 				if err != nil {
 					continue
 				}
@@ -86,9 +86,9 @@ func (w *Worker) pushJob(job entity.Job) {
 	w.stream <- job
 }
 
-func (w *Worker) runJob() error {
+func (w *Worker) runJob(ctx context.Context) error {
 	ticker := time.NewTicker(time.Second * 1)
-	jobs, err := w.repo.GetJobs()
+	jobs, err := w.repo.GetJobs(ctx)
 	if err != nil {
 		return err
 	}
@@ -141,10 +141,6 @@ func (w *Worker) makeRequest(job entity.Job) error {
 	}
 
 	if result.Status == entity.OrderStatusRegistered || result.Status == entity.OrderStatusProcessing {
-		err = w.updateOrderStatus(result)
-		if err != nil {
-			return err
-		}
 		return ErrOrderIsInProcessing
 	}
 
