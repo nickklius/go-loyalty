@@ -145,9 +145,9 @@ func (h *Handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetClaims(r.Context())
 
 	order := entity.Order{
-		UserID: userID,
-		Number: strconv.Itoa(number),
-		Status: "NEW",
+		UserID:      userID,
+		Number:      strconv.Itoa(number),
+		OrderStatus: entity.OrderStatusNew,
 	}
 
 	err = h.u.CreateOrder(r.Context(), order)
@@ -157,7 +157,7 @@ func (h *Handler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	job := entity.Job{OrderID: strconv.Itoa(number)}
+	job := entity.Job{OrderID: strconv.Itoa(number), Status: entity.OrderStatusNew}
 	_ = h.u.AddJobToRepo(r.Context(), job)
 
 	w.WriteHeader(http.StatusAccepted)

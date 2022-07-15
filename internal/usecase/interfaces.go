@@ -20,7 +20,7 @@ type (
 
 	JobRepository interface {
 		AddJob(ctx context.Context, job entity.Job) error
-		GetJobs() ([]entity.Job, error)
+		GetJobs(ctx context.Context) ([]entity.Job, error)
 		DeleteJob(job entity.Job) error
 	}
 )
