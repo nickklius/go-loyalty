@@ -1,0 +1,9 @@
+app:
+  run-address: ':8080'
+accrual:
+  accrual-address: 'http://localhost:8082'
+db:
+  database-uri: ''
+auth:
+  secret: '23i4-q028934h#$@'
+  access-life-time: 600
